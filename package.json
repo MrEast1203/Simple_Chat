@@ -1,0 +1,12 @@
+{
+  "name": "Simple_Chat",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/MrEast1203/Simple_Chat.git",
+  "author": "Kan <mreast1203@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "cd frontend && yarn start",
+    "server": "cd backend && yarn server"
+  }
+}

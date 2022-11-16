@@ -6,13 +6,26 @@ const useChat = () => {
   const sendData = async (data) => {
     await client.send(JSON.stringify(data));
   };
-  const sendMessage = (msg) => {
-    setMessages([...messages, msg]);
-    setStatus({
-      type: 'success',
-      msg: 'Message sent.',
-    });
-    console.log(msg);
+  client.onmessage = (byteString) => {
+    const { data } = byteString;
+    const [task, payload] = JSON.parse(data);
+    switch (task) {
+      case 'output': {
+        setMessages(() => [...messages, ...payload]);
+        break;
+      }
+      case 'status': {
+        setStatus(payload);
+        break;
+      }
+      default:
+        break;
+    }
+  };
+  const sendMessage = (payload) => {
+    //setMessages([...messages, payload]);
+    sendData(['input', payload]);
+    console.log(payload);
   };
   return {
     status,
