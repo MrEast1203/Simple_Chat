@@ -6,7 +6,12 @@ const sendData = (data, ws) => {
 const sendStatus = (payload, ws) => {
   sendData(['status', payload], ws);
 };
-
+const broadcastMessage = (wss, data, status) => {
+  wss.clients.forEach((client) => {
+    sendData(data, client);
+    sendStatus(status, client);
+  });
+};
 export default {
   initData: (ws) => {
     Message.find()
@@ -16,6 +21,7 @@ export default {
         if (err) throw err;
         // initialize app with existing messages
         sendData(['init', res], ws);
+        // broadcastMessage(ws, ['init', res], 'status');
       });
   },
   onMessage: (ws) => async (byteString) => {
@@ -40,6 +46,21 @@ export default {
           },
           ws
         );
+        // broadcastMessage(ws, ['output', [payload]], {
+        //   type: 'success',
+        //   msg: 'Message sent.',
+        // });
+        break;
+      }
+      case 'clear': {
+        Message.deleteMany({}, () => {
+          sendData(['cleared'], ws);
+          sendStatus({ type: 'info', msg: 'Message cache cleared.' }, ws);
+          //   broadcastMessage(ws, ['cleared'], {
+          //     type: 'info',
+          //     msg: 'Message cache cleared.',
+          //   });
+        });
         break;
       }
       default:

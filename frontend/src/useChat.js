@@ -1,15 +1,13 @@
 import { useState } from 'react';
+const client = new WebSocket('ws://localhost:4000/');
 const useChat = () => {
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState({});
-  const client = new WebSocket('ws://localhost:4000/');
   client.addEventListener('error', (event) => {
     console.log('WebSocket error: ', event);
   });
   const sendData = async (data) => {
-    client.addEventListener('open', () => {
-      client.send(JSON.stringify(data));
-    });
+    client.send(JSON.stringify(data));
   };
   client.onmessage = (byteString) => {
     const { data } = byteString;
@@ -27,6 +25,10 @@ const useChat = () => {
         setStatus(payload);
         break;
       }
+      case 'cleared': {
+        setMessages([]);
+        break;
+      }
       default:
         break;
     }
@@ -36,10 +38,15 @@ const useChat = () => {
     sendData(['input', payload]);
     console.log(payload);
   };
+
+  const clearMessages = () => {
+    sendData(['clear']);
+  };
   return {
     status,
     messages,
     sendMessage,
+    clearMessages,
   };
 };
 export default useChat;
