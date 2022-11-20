@@ -1,5 +1,8 @@
+import React from 'react';
 import { UserOutlined } from '@ant-design/icons';
-const LogIn = ({ me, setName, onLogin }) => {
+import { Input } from 'antd';
+
+export const Login = ({ me, setName, onLogin }) => {
   return (
     <Input.Search
       size="large"

@@ -1,3 +1,4 @@
+import styled from 'styled-components';
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
@@ -8,7 +9,7 @@ const Wrapper = styled.div`
     font-size: 3em;
   }
 `;
-const Title = ({ name }) => (
+export const Title = ({ name }) => (
   <Wrapper>
     <h1>
       {name ? `${name}'s` : 'My'}
