@@ -4,11 +4,14 @@ import './index.css';
 import App from './containers/App';
 import reportWebVitals from './reportWebVitals';
 import 'antd/dist/antd.css';
+import { ChatProvider } from './hooks/useChat';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <ChatProvider>
+      <App />
+    </ChatProvider>
   </React.StrictMode>
 );
 

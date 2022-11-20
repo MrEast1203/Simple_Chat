@@ -1,7 +1,6 @@
 import '../App.css';
-import { Button, Input, message, Tag } from 'antd';
-import useChat from '../hooks/useChat';
-import { useState, useEffect, useRef } from 'react';
+import { useChat } from '../hooks/useChat';
+import { useEffect } from 'react';
 import { ChatRoom } from './ChatRoom';
 import { Signin } from './Signin';
 import styled from 'styled-components';
@@ -16,11 +15,11 @@ const Wrapper = styled.div`
 `;
 
 function App() {
-  const { status, signedIn, displayStatus } = useChat();
-  // useEffect(() => {
-  //   displayStatus(status);
-  // }, [status, displayStatus]);
-  return <Wrapper>{signedIn ? <ChatRoom /> : <Signin />}</Wrapper>;
+  const { status, me, signedIn, displayStatus } = useChat();
+  useEffect(() => {
+    displayStatus(status);
+  }, [status]);
+  return <Wrapper>{signedIn ? <ChatRoom /> : <Signin me={me} />}</Wrapper>;
 }
 
 export default App;
