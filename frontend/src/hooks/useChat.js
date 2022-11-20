@@ -3,6 +3,8 @@ const client = new WebSocket('ws://localhost:4000/');
 const useChat = () => {
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState({});
+  const signedIn = false;
+  const displayStatus = [];
   client.addEventListener('error', (event) => {
     console.log('WebSocket error: ', event);
   });
@@ -47,6 +49,8 @@ const useChat = () => {
     messages,
     sendMessage,
     clearMessages,
+    signedIn,
+    displayStatus,
   };
 };
 export default useChat;

@@ -1,9 +1,9 @@
-import './App.css';
+import React from 'react';
 import { Button, Input, message, Tag } from 'antd';
-import useChat from './useChat';
+import useChat from '../hooks/useChat';
 import { useState, useEffect, useRef } from 'react';
 
-function App() {
+export const ChatRoom = () => {
   const { status, messages, sendMessage, clearMessages } = useChat();
   const [username, setUsername] = useState('');
   const [body, setBody] = useState('');
@@ -78,6 +78,4 @@ function App() {
         }}></Input.Search>
     </div>
   );
-}
-
-export default App;
+};
