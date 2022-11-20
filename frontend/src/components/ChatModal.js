@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Input } from 'antd';
+import { Modal, Form } from 'antd';
 const ChatModal = ({ open, onCreate, onCancel }) => {
   const [form] = Form.useForm();
   return (
