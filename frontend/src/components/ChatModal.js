@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form } from 'antd';
+import { Modal, Form, Input } from 'antd';
 const ChatModal = ({ open, onCreate, onCancel }) => {
   const [form] = Form.useForm();
   return (
@@ -29,7 +29,9 @@ const ChatModal = ({ open, onCreate, onCancel }) => {
               required: true,
               message: 'Error: Please enter the name of the person to chat!',
             },
-          ]}></Form.Item>
+          ]}>
+          <Input />
+        </Form.Item>
       </Form>
     </Modal>
   );

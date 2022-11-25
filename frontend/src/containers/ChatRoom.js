@@ -80,7 +80,7 @@ export const ChatRoom = () => {
     msgFooter.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   useEffect(() => {
-    scrollToBottom();
+    //scrollToBottom();
     setMsgSent(false);
   }, [msgSent]);
 
@@ -116,7 +116,7 @@ export const ChatRoom = () => {
           }}
         />
       </>
-      <Input
+      {/* <Input
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             msgFooter.current.focus();
@@ -125,7 +125,7 @@ export const ChatRoom = () => {
         placeholder="Username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        style={{ marginBottom: 10 }}></Input>
+        style={{ marginBottom: 10 }}></Input> */}
       <Input.Search
         ref={msgFooter}
         value={msg}
@@ -133,7 +133,7 @@ export const ChatRoom = () => {
         enterButton="Send"
         placeholder="Type a message here..."
         onSearch={(msg) => {
-          if (!msg || !username) {
+          if (!msg) {
             displayStatus({
               type: 'error',
               msg: 'Please enter a username and a message body.',
@@ -147,7 +147,7 @@ export const ChatRoom = () => {
             setMsg('');
             return;
           }
-          sendMessage({ name: username, body: msg });
+          sendMessage({ name: me, body: msg });
           setMsg('');
           setMsgSent(true);
         }}></Input.Search>
