@@ -31,22 +31,6 @@ const ChatProvider = (props) => {
     const { data } = byteString;
     const [task, payload] = JSON.parse(data);
     switch (task) {
-      // case 'init': {
-      //   setMessages(payload);
-      //   break;
-      // }
-      // case 'output': {
-      //   setMessages(() => [...messages, ...payload]);
-      //   break;
-      // }
-      // case 'status': {
-      //   setStatus(payload);
-      //   break;
-      // }
-      // case 'cleared': {
-      //   setMessages([]);
-      //   break;
-      // }
       case 'CHAT': {
         setMessages(payload);
         break;

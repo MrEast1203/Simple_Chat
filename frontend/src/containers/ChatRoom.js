@@ -83,6 +83,14 @@ export const ChatRoom = () => {
     setMsgSent(false);
   }, [msgSent]);
 
+  useEffect(() => {
+    const chat = extractChat(activeKey);
+    setChatBoxes([
+      ...chatBoxes,
+      { label: activeKey, children: chat, key: activeKey },
+    ]);
+  }, [messages]);
+
   return (
     <>
       <Title name={me} />
