@@ -9,49 +9,71 @@ const ChatContext = createContext({
   me: '',
   signedIn: false,
   messages: [],
+  startChat: () => {},
   sendMessage: () => {},
   clearMessages: () => {},
 });
 const client = new WebSocket('ws://localhost:4000/');
+client.onopen = () => console.log('Backend socket server connected!');
+
 const ChatProvider = (props) => {
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState({});
   const [signedIn, setSignedIn] = useState(false);
   const [me, setMe] = useState(savedMe || '');
-  client.addEventListener('error', (event) => {
-    console.log('WebSocket error: ', event);
-  });
+  // client.addEventListener('error', (event) => {
+  //   console.log('WebSocket error: ', event);
+  // });
   const sendData = async (data) => {
-    client.send(JSON.stringify(data));
+    await client.send(JSON.stringify(data));
   };
   client.onmessage = (byteString) => {
     const { data } = byteString;
     const [task, payload] = JSON.parse(data);
     switch (task) {
-      case 'init': {
+      // case 'init': {
+      //   setMessages(payload);
+      //   break;
+      // }
+      // case 'output': {
+      //   setMessages(() => [...messages, ...payload]);
+      //   break;
+      // }
+      // case 'status': {
+      //   setStatus(payload);
+      //   break;
+      // }
+      // case 'cleared': {
+      //   setMessages([]);
+      //   break;
+      // }
+      case 'CHAT': {
         setMessages(payload);
         break;
       }
-      case 'output': {
-        setMessages(() => [...messages, ...payload]);
-        break;
-      }
-      case 'status': {
-        setStatus(payload);
-        break;
-      }
-      case 'cleared': {
-        setMessages([]);
+      case 'MESSAGE': {
+        setMessages(() => [...messages, payload]);
         break;
       }
       default:
         break;
     }
   };
-  const sendMessage = (payload) => {
+  const startChat = (name, to) => {
+    if (!name || !to) throw new Error('Name or to required.');
+
+    sendData({
+      type: 'CHAT',
+      payload: { name, to },
+    });
+  };
+  const sendMessage = (name, to, body) => {
+    if (!name || !to || !body) throw new Error('Name or to required.');
     //setMessages([...messages, payload]);
-    sendData(['input', payload]);
-    console.log(payload);
+    sendData({
+      type: 'MESSAGE',
+      payload: { name, to, body },
+    });
   };
 
   const clearMessages = () => {
@@ -93,6 +115,7 @@ const ChatProvider = (props) => {
         displayStatus,
         setSignedIn,
         setMe,
+        startChat,
       }}
       {...props}
     />

@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import ChatModal from '../components/ChatModal';
 const ChatBoxesWrapper = styled(Tabs)`
   width: 100%;
-  height: 100%;
+  height: 300px;
   background: #eeeeee52;
   border-radius: 10px;
   margin: 20px;

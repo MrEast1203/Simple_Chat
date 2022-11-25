@@ -1,4 +1,16 @@
-import Message from '../models/message';
+import Message from './models/message';
+import { UserModel, MessageModel, ChatBoxModel } from './models/chatbox';
+
+const makeName = (name, to) => {
+  return [name, to].sort().join('_');
+};
+//Big Changes
+const validateUser = async (name) => {
+  console.log('Finding...' + name);
+  const existing = await UserModel.findOne({ name });
+  console.log(existing);
+  if (existing) return existing;
+};
 
 const sendData = (data, ws) => {
   ws.send(JSON.stringify(data));
@@ -24,7 +36,7 @@ export default {
         // broadcastMessage(ws, ['init', res], 'status');
       });
   },
-  onMessage: (ws) => async (byteString) => {
+  onMessage: (wss, ws) => async (byteString) => {
     const { data } = byteString;
     const [task, payload] = JSON.parse(data);
     switch (task) {
@@ -38,28 +50,28 @@ export default {
           throw new Error('Message DB save error: ' + e);
         }
         // Respond to client
-        sendData(['output', [payload]], ws);
-        sendStatus(
-          {
-            type: 'success',
-            msg: 'Message sent.',
-          },
-          ws
-        );
-        // broadcastMessage(ws, ['output', [payload]], {
-        //   type: 'success',
-        //   msg: 'Message sent.',
-        // });
+        // sendData(['output', [payload]], ws);
+        // sendStatus(
+        //   {
+        //     type: 'success',
+        //     msg: 'Message sent.',
+        //   },
+        //   ws
+        // );
+        broadcastMessage(wss, ['output', [payload]], {
+          type: 'success',
+          msg: 'Message sent.',
+        });
         break;
       }
       case 'clear': {
         Message.deleteMany({}, () => {
-          sendData(['cleared'], ws);
-          sendStatus({ type: 'info', msg: 'Message cache cleared.' }, ws);
-          //   broadcastMessage(ws, ['cleared'], {
-          //     type: 'info',
-          //     msg: 'Message cache cleared.',
-          //   });
+          // sendData(['cleared'], ws);
+          // sendStatus({ type: 'info', msg: 'Message cache cleared.' }, ws);
+          broadcastMessage(wss, ['cleared'], {
+            type: 'info',
+            msg: 'Message cache cleared.',
+          });
         });
         break;
       }
