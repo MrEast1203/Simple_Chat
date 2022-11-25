@@ -75,6 +75,13 @@ export default {
         });
         break;
       }
+      case 'CHAT': {
+        break;
+      }
+      case 'MESSAGE': {
+      }
+      case 'CLEAR': {
+      }
       default:
         break;
     }

@@ -24,7 +24,7 @@ const FootRef = styled.div`
   height: 20px;
 `;
 export const ChatRoom = () => {
-  const { me, messages, sendMessage, displayStatus } = useChat();
+  const { me, messages, sendMessage, displayStatus, startChat } = useChat();
   const [chatBoxes, setChatBoxes] = useState([]);
   const [activeKey, setActiveKey] = useState('');
   const [msg, setMsg] = useState('');
@@ -39,7 +39,7 @@ export const ChatRoom = () => {
       <p style={{ color: '#ccc' }}> No messages... </p>
     ) : (
       <ChatBoxWrapper>
-        {chat.map(({ name, body }, i) => (
+        {chat.map(({ name, to, body }, i) => (
           <Message name={name} isMe={name === me} message={body} key={i} />
         ))}
         <FootRef ref={msgFooter} />
@@ -47,9 +47,8 @@ export const ChatRoom = () => {
     );
   };
   const extractChat = (friend) => {
-    return displayChat(
-      messages.filter(({ name, body }) => name === friend || name === me)
-    );
+    startChat(me, friend);
+    return displayChat(messages);
   };
   const createChatBox = (friend) => {
     if (chatBoxes.some(({ key }) => key === friend)) {
@@ -147,7 +146,7 @@ export const ChatRoom = () => {
             setMsg('');
             return;
           }
-          sendMessage({ name: me, body: msg });
+          sendMessage({ name: me, to: activeKey, body: msg });
           setMsg('');
           setMsgSent(true);
         }}></Input.Search>
