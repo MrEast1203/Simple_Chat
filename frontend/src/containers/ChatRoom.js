@@ -123,16 +123,6 @@ export const ChatRoom = () => {
           }}
         />
       </>
-      {/* <Input
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            msgFooter.current.focus();
-          }
-        }}
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        style={{ marginBottom: 10 }}></Input> */}
       <Input.Search
         ref={msgFooter}
         value={msg}
