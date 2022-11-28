@@ -16,6 +16,8 @@ const ChatContext = createContext({
 const client = new WebSocket('ws://localhost:4000/');
 client.onopen = () => console.log('Backend socket server connected!');
 
+//console.log('client', client);
+
 const ChatProvider = (props) => {
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState({});
@@ -42,8 +44,15 @@ const ChatProvider = (props) => {
         break;
       }
       case 'MESSAGE': {
-        //setMessages(() => [...messages, payload]);
-        console.error('Do CHAT!');
+        setMessages(() => [
+          ...messages,
+          { sender: payload.name, body: payload.body },
+        ]);
+        console.error('Do MESSAGE!');
+        break;
+      }
+      case 'status': {
+        setStatus(payload);
         break;
       }
       default:

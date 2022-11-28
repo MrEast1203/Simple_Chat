@@ -5,22 +5,22 @@ const makeName = (name, to) => {
   return [name, to].sort().join('_');
 };
 
-const validateUser = async (name) => {
-  console.log('Finding...' + name);
-  let existing = await UserModel.findOne({ name });
-  try {
-    if (existing) {
-      console.log('user exists');
-      console.log(existing);
-    } else {
-      const newUser = await new UserModel({ name });
-      console.log('adding', newUser);
-      newUser.save();
-    }
-  } catch (e) {
-    console.log(e);
-  }
-};
+// const validateUser = async (name) => {
+//   console.log('Finding...' + name);
+//   let existing = await UserModel.findOne({ name });
+//   try {
+//     if (existing) {
+//       console.log('user exists');
+//       console.log(existing);
+//     } else {
+//       const newUser = await new UserModel({ name });
+//       console.log('adding', newUser);
+//       newUser.save();
+//     }
+//   } catch (e) {
+//     console.log(e);
+//   }
+// };
 
 const validateChatBox = async (name, participants) => {
   let box = await ChatBoxModel.findOne({ name });
@@ -67,32 +67,16 @@ export default {
         chatBoxes[chatBoxName].add(ws);
 
         let sdUser = await UserModel.findOne({ name });
-        let rxUser = await UserModel.findOne({ to });
+        let rxUser = await UserModel.findOne({ name: to });
 
         ws.box = chatBoxName;
-        var exists = true;
-        var exists2 = true;
-        var newUser;
-        var newUser2;
         if (!sdUser) {
-          newUser = await new UserModel({ name });
-          newUser.save();
-          exists = false;
+          sdUser = await new UserModel({ name }).save();
         }
         if (!rxUser) {
-          newUser2 = await new UserModel({ name: to });
-          newUser2.save();
-          exists2 = false;
+          rxUser = await new UserModel({ name: to }).save();
         }
-        var chatbox;
-        if (exists && exists2)
-          chatbox = await validateChatBox(chatBoxName, [sdUser, rxUser]);
-        else if (!exists && exists2)
-          chatbox = await validateChatBox(chatBoxName, [newUser, rxUser]);
-        else if (exists && !exists2)
-          chatbox = await validateChatBox(chatBoxName, [sdUser, newUser2]);
-        else if (!exists && !exists2)
-          chatbox = await validateChatBox(chatBoxName, [newUser, newUser2]);
+        const chatbox = await validateChatBox(chatBoxName, [sdUser, rxUser]);
 
         //console.log(chatbox);
         const reply = [];
@@ -103,7 +87,7 @@ export default {
           reply.push({ sender: sender, body: body });
           //sendData(['CHAT', {sender: sender, body: body}], ws)
         });
-        reply.push({ sender: 'Kan', body: 'Test Message' });
+        //reply.push({ sender: 'Kan', body: 'Test Message' });
         sendData(['CHAT', reply], ws);
         break;
       }
@@ -111,18 +95,32 @@ export default {
         // Save payload to DB
         const { name, to, body } = payload;
         console.log(name, to, body);
+        const boxname = makeName(name, to);
+        let box = await ChatBoxModel.findOne({ name: boxname });
+        var flip = true;
+        if (!box) {
+          boxname = makeName(to, name);
+          box = await ChatBoxModel.findOne({ name: boxname });
+          flip = false;
+        }
         //validateUser(name, to);
-        console.log('nameModel');
-        // const message = new MessageModel(
-        //   validateChatBox(name, to),
-        //   validateUser(name),
-        //   body
-        // );
-        // try {
-        //   await message.save();
-        // } catch (e) {
-        //   throw new Error('Message DB save error: ' + e);
-        // }
+        let user = await UserModel.findOne({ name });
+        const message = new MessageModel({
+          chatBox: box,
+          sender: user,
+          body: body,
+        });
+        await message.save();
+        console.log('Message!');
+        const addMessage = [...box.messages, message];
+        const updateMessage = await ChatBoxModel.updateOne(
+          { name: box.name },
+          { $set: { messages: addMessage } }
+        );
+        broadcastMessage(wss, ['MESSAGE', payload], {
+          type: 'success',
+          msg: 'Message sent.',
+        });
         // broadcastMessage(wss, ['MESSAGE', [payload]], {
         //   type: 'success',
         //   msg: 'Message sent.',

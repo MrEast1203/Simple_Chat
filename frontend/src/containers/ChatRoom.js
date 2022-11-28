@@ -39,9 +39,17 @@ export const ChatRoom = () => {
       <p style={{ color: '#ccc' }}> No messages... </p>
     ) : (
       <ChatBoxWrapper>
-        {chat.map(({ sender, body }, i) => (
-          <Message name={sender} isMe={sender === me} message={body} key={i} />
-        ))}
+        {chat.map(({ sender, body }, i) => {
+          if (sender === me || sender === activeKey)
+            return (
+              <Message
+                name={sender}
+                isMe={sender === me}
+                message={body}
+                key={i}
+              />
+            );
+        })}
         <FootRef ref={msgFooter} />
       </ChatBoxWrapper>
     );
