@@ -24,36 +24,39 @@ const FootRef = styled.div`
   height: 20px;
 `;
 export const ChatRoom = () => {
-  const { me, messages, sendMessage, displayStatus, startChat } = useChat();
+  const { me, messages, sendMessage, displayStatus, startChat, test, setTest } =
+    useChat();
   const [chatBoxes, setChatBoxes] = useState([]);
   const [activeKey, setActiveKey] = useState('');
   const [msg, setMsg] = useState('');
   const [msgSent, setMsgSent] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-
-  const [username, setUsername] = useState('');
+  const [flip, setFlip] = useState(false);
 
   const msgFooter = useRef(null);
   const displayChat = (chat) => {
-    chat.length === 0 ? (
+    return chat.length === 0 ? (
       <p style={{ color: '#ccc' }}> No messages... </p>
     ) : (
       <ChatBoxWrapper>
-        {chat.map(({ name, to, body }, i) => (
-          <Message name={name} isMe={name === me} message={body} key={i} />
+        {chat.map(({ sender, body }, i) => (
+          <Message name={sender} isMe={sender === me} message={body} key={i} />
         ))}
         <FootRef ref={msgFooter} />
       </ChatBoxWrapper>
     );
   };
   const extractChat = (friend) => {
-    startChat(me, friend);
+    console.log(me + friend);
+    console.log('extract', test);
     return displayChat(messages);
   };
   const createChatBox = (friend) => {
     if (chatBoxes.some(({ key }) => key === friend)) {
       throw new Error(friend + "'s chat box has already opened.");
     }
+    console.log('creating chatbox');
+    startChat(me, friend);
     const chat = extractChat(friend);
     setChatBoxes([
       ...chatBoxes,
@@ -82,15 +85,34 @@ export const ChatRoom = () => {
     //scrollToBottom();
     setMsgSent(false);
   }, [msgSent]);
-
+  const testref = useRef(true);
+  const testref2 = useRef(true);
   useEffect(() => {
-    const chat = extractChat(activeKey);
-    setChatBoxes([
-      ...chatBoxes,
-      { label: activeKey, children: chat, key: activeKey },
-    ]);
+    if (testref.current) {
+      testref.current = false;
+      return;
+    }
+    if (testref2.current) {
+      testref2.current = false;
+      return;
+    }
+    console.log(messages);
+    const tmp = chatBoxes.find(({ key }) => key === activeKey);
+    tmp.children = displayChat(messages);
+    setFlip(true);
   }, [messages]);
 
+  useEffect(() => {
+    setFlip(false);
+  }, [flip]);
+
+  // useEffect(() => {
+  //   const chat = extractChat(activeKey);
+  //   setChatBoxes([
+  //     ...chatBoxes,
+  //     { label: activeKey, children: chat, key: activeKey },
+  //   ]);
+  // }, [messages]);
   return (
     <>
       <Title name={me} />
@@ -101,6 +123,7 @@ export const ChatRoom = () => {
           activeKey={activeKey}
           onChange={(key) => {
             setActiveKey(key);
+            startChat(me, key);
             extractChat(key);
           }}
           onEdit={(targetKey, action) => {
@@ -115,7 +138,7 @@ export const ChatRoom = () => {
           open={modalOpen}
           onCreate={({ name }) => {
             setActiveKey(createChatBox(name));
-            extractChat(name);
+            //extractChat(name);
             setModalOpen(false);
           }}
           onCancel={() => {
@@ -143,6 +166,9 @@ export const ChatRoom = () => {
             });
             setMsg('');
             return;
+          }
+          {
+            console.log('me:' + me + 'act:' + activeKey + 'msg' + msg);
           }
           sendMessage({ name: me, to: activeKey, body: msg });
           setMsg('');

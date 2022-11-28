@@ -1,16 +1,25 @@
-import Message from './models/message';
-import { UserModel, MessageModel, ChatBoxModel } from './models/chatbox';
-
+const UserModel = require('./models/user');
+const MessageModel = require('./models/message');
+const ChatBoxModel = require('./models/chatbox');
 const makeName = (name, to) => {
   return [name, to].sort().join('_');
 };
 
 const validateUser = async (name) => {
   console.log('Finding...' + name);
-  const existing = await UserModel.findOne({ name });
-  console.log(existing);
-  if (existing) return existing;
-  else return await new UserModel({ name }).save();
+  let existing = await UserModel.findOne({ name });
+  try {
+    if (existing) {
+      console.log('user exists');
+      console.log(existing);
+    } else {
+      const newUser = await new UserModel({ name });
+      console.log('adding', newUser);
+      newUser.save();
+    }
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 const validateChatBox = async (name, participants) => {
@@ -35,83 +44,93 @@ const broadcastMessage = (wss, data, status) => {
 const chatBoxes = {};
 
 export default {
-  initData: (ws) => {
-    Message.find()
-      .sort({ created_at: -1 })
-      .limit(100)
-      .exec((err, res) => {
-        if (err) throw err;
-        // initialize app with existing messages
-        sendData(['init', res], ws);
-        // broadcastMessage(ws, ['init', res], 'status');
-      });
-  },
   onMessage: (wss, ws) => async (byteString) => {
+    console.log('onMessage');
     const { data } = byteString;
-    const [task, payload] = JSON.parse(data);
-    if (!chatBoxes[ws.box]) chatBoxes[ws.box] = new Set();
-    chatBoxes[ws.box].add(ws);
-    if (ws.box !== '' && chatBoxes[ws.box]) chatBoxes[ws.box].delete(ws);
+    console.log(JSON.parse(data));
+    const tmp = JSON.parse(data);
+    const task = tmp.type;
+    const payload = tmp.payload;
+    console.log('task: ' + task);
+    console.log('payload:' + payload);
+    console.log(ws.box);
+
+    // if (ws.box !== '' && chatBoxes[ws.box]) chatBoxes[ws.box].delete(ws);
     switch (task) {
-      case 'input': {
-        const { name, body } = payload;
-        // Save payload to DB
-        const message = new Message({ name, body });
-        try {
-          await message.save();
-        } catch (e) {
-          throw new Error('Message DB save error: ' + e);
-        }
-        broadcastMessage(wss, ['output', [payload]], {
-          type: 'success',
-          msg: 'Message sent.',
-        });
-        break;
-      }
-      case 'clear': {
-        Message.deleteMany({}, () => {
-          // sendData(['cleared'], ws);
-          // sendStatus({ type: 'info', msg: 'Message cache cleared.' }, ws);
-          broadcastMessage(wss, ['cleared'], {
-            type: 'info',
-            msg: 'Message cache cleared.',
-          });
-        });
-        break;
-      }
       case 'CHAT': {
+        if (ws.box !== '' && chatBoxes[ws.box]) chatBoxes[ws.box].delete(ws);
+
         const { name, to } = payload;
-        validateChatBox(name, to)
-          .find()
-          .sort({ created_at: -1 })
-          .limit(100)
-          .exec((err, res) => {
-            if (err) throw err;
-            // initialize app with existing messages
-            sendData(['CHAT', res], ws);
-          });
+        //console.log('Chat' + name, to);
+        const chatBoxName = makeName(name, to);
+        if (!chatBoxes[chatBoxName]) chatBoxes[chatBoxName] = new Set();
+        chatBoxes[chatBoxName].add(ws);
+
+        let sdUser = await UserModel.findOne({ name });
+        let rxUser = await UserModel.findOne({ to });
+
+        ws.box = chatBoxName;
+        var exists = true;
+        var exists2 = true;
+        var newUser;
+        var newUser2;
+        if (!sdUser) {
+          newUser = await new UserModel({ name });
+          newUser.save();
+          exists = false;
+        }
+        if (!rxUser) {
+          newUser2 = await new UserModel({ name: to });
+          newUser2.save();
+          exists2 = false;
+        }
+        var chatbox;
+        if (exists && exists2)
+          chatbox = await validateChatBox(chatBoxName, [sdUser, rxUser]);
+        else if (!exists && exists2)
+          chatbox = await validateChatBox(chatBoxName, [newUser, rxUser]);
+        else if (exists && !exists2)
+          chatbox = await validateChatBox(chatBoxName, [sdUser, newUser2]);
+        else if (!exists && !exists2)
+          chatbox = await validateChatBox(chatBoxName, [newUser, newUser2]);
+
+        //console.log(chatbox);
+        const reply = [];
+        chatbox.messages.map((msg) => {
+          const sender = msg.sender.name;
+          const body = msg.body;
+          //console.log(sender, body);
+          reply.push({ sender: sender, body: body });
+          //sendData(['CHAT', {sender: sender, body: body}], ws)
+        });
+        reply.push({ sender: 'Kan', body: 'Test Message' });
+        sendData(['CHAT', reply], ws);
         break;
       }
       case 'MESSAGE': {
-        const { name, to, body } = payload;
         // Save payload to DB
-        const message = new MessageModel(
-          validateChatBox(name, to),
-          validateUser(name),
-          body
-        );
-        try {
-          await message.save();
-        } catch (e) {
-          throw new Error('Message DB save error: ' + e);
-        }
-        broadcastMessage(wss, ['MESSAGE', [payload]], {
-          type: 'success',
-          msg: 'Message sent.',
-        });
+        const { name, to, body } = payload;
+        console.log(name, to, body);
+        //validateUser(name, to);
+        console.log('nameModel');
+        // const message = new MessageModel(
+        //   validateChatBox(name, to),
+        //   validateUser(name),
+        //   body
+        // );
+        // try {
+        //   await message.save();
+        // } catch (e) {
+        //   throw new Error('Message DB save error: ' + e);
+        // }
+        // broadcastMessage(wss, ['MESSAGE', [payload]], {
+        //   type: 'success',
+        //   msg: 'Message sent.',
+        // });
         break;
       }
       case 'CLEAR': {
+        break;
       }
       default:
         break;

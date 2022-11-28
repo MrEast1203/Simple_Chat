@@ -21,22 +21,29 @@ const ChatProvider = (props) => {
   const [status, setStatus] = useState({});
   const [signedIn, setSignedIn] = useState(false);
   const [me, setMe] = useState(savedMe || '');
+  const [test, setTest] = useState(false);
   // client.addEventListener('error', (event) => {
   //   console.log('WebSocket error: ', event);
   // });
   const sendData = async (data) => {
-    await client.send(JSON.stringify(data));
+    client.send(JSON.stringify(data));
   };
   client.onmessage = (byteString) => {
     const { data } = byteString;
     const [task, payload] = JSON.parse(data);
     switch (task) {
       case 'CHAT': {
+        console.log('CHAT', payload);
         setMessages(payload);
+        setTest(true);
+        console.log('messages in useChat', messages);
+        console.log('test', test);
+        console.error('Do CHAT!');
         break;
       }
       case 'MESSAGE': {
-        setMessages(() => [...messages, payload]);
+        //setMessages(() => [...messages, payload]);
+        console.error('Do CHAT!');
         break;
       }
       default:
@@ -51,9 +58,11 @@ const ChatProvider = (props) => {
       payload: { name, to },
     });
   };
-  const sendMessage = (name, to, body) => {
+  const sendMessage = (payload) => {
+    const { name, to, body } = payload;
     if (!name || !to || !body) throw new Error('Name or to required.');
     //setMessages([...messages, payload]);
+    console.log(name + to + body);
     sendData({
       type: 'MESSAGE',
       payload: { name, to, body },
@@ -100,6 +109,8 @@ const ChatProvider = (props) => {
         setSignedIn,
         setMe,
         startChat,
+        test,
+        setTest,
       }}
       {...props}
     />
