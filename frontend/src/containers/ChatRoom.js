@@ -13,12 +13,13 @@ const ChatBoxesWrapper = styled(Tabs)`
   border-radius: 10px;
   margin: 20px;
   padding: 20px;
+  overflow: auto;
 `;
 const ChatBoxWrapper = styled.div`
   height: calc(240px-36px);
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  overflow: auto;
 `;
 const FootRef = styled.div`
   height: 20px;
@@ -39,25 +40,19 @@ export const ChatRoom = () => {
       <p style={{ color: '#ccc' }}> No messages... </p>
     ) : (
       <ChatBoxWrapper>
-        {chat.map(({ sender, body }, i) => {
-          if (sender === me || sender === activeKey)
-            return (
-              <Message
-                name={sender}
-                isMe={sender === me}
-                message={body}
-                key={i}
-              />
-            );
-        })}
-        <FootRef ref={msgFooter} />
+        {chat.map(({ sender, body }, i) => (
+          <Message name={sender} isMe={sender === me} message={body} key={i} />
+        ))}
+        {/* <FootRef ref={msgFooter} /> */}
       </ChatBoxWrapper>
     );
   };
   const extractChat = (friend) => {
     console.log(me + friend);
     console.log('extract', test);
-    return displayChat(messages);
+    return displayChat(
+      messages.filter(({ name, body }) => name === friend || name === me)
+    );
   };
   const createChatBox = (friend) => {
     if (chatBoxes.some(({ key }) => key === friend)) {
@@ -91,6 +86,7 @@ export const ChatRoom = () => {
   };
   useEffect(() => {
     //scrollToBottom();
+    console.log('hi');
     setMsgSent(false);
   }, [msgSent]);
   const testref = useRef(true);
@@ -131,8 +127,8 @@ export const ChatRoom = () => {
           activeKey={activeKey}
           onChange={(key) => {
             setActiveKey(key);
-            startChat(me, key);
             extractChat(key);
+            startChat(me, key);
           }}
           onEdit={(targetKey, action) => {
             if (action === 'add') setModalOpen(true);
@@ -140,8 +136,9 @@ export const ChatRoom = () => {
               setActiveKey(removeChatBox(targetKey, activeKey));
             }
           }}
-          items={chatBoxes}
-        />
+          items={chatBoxes}>
+          <FootRef ref={msgFooter} />
+        </ChatBoxesWrapper>
         <ChatModal
           open={modalOpen}
           onCreate={({ name }) => {
